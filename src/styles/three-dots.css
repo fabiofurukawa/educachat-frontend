@@ -1,0 +1,28 @@
+/**
+ * ==============================================
+ * Dot Carousel
+ * ==============================================
+ */
+.dot-carousel {
+  transform: scale(3.5);         /* ¡Aumenta el tamaño! */
+  margin: 22px auto 22px 12px;   /* Centrado y con aire */
+  display: block;
+}
+
+.dot-carousel,
+.dot-carousel::before,
+.dot-carousel::after {
+  background-color: #7761f2 !important; /* Color más fuerte (como en la demo) */
+  color: #7761f2 !important;
+}
+@keyframes dot-carousel {
+  0% {
+    box-shadow: 9984px 0 0 -1px #9880ff, 9999px 0 0 1px #9880ff, 10014px 0 0 -1px #9880ff;
+  }
+  50% {
+    box-shadow: 10014px 0 0 -1px #9880ff, 9984px 0 0 -1px #9880ff, 9999px 0 0 1px #9880ff;
+  }
+  100% {
+    box-shadow: 9999px 0 0 1px #9880ff, 10014px 0 0 -1px #9880ff, 9984px 0 0 -1px #9880ff;
+  }
+}

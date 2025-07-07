@@ -1,0 +1,141 @@
+.sidebar {
+  width: 250px;
+  background: #e7eefd;
+  padding: 0 0 16px 0;
+  border-right: 1.5px solid #b3bde5;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Cabeçalho do Sidebar */
+.sidebar-header {
+  height: 84px;                      /* MESMA ALTURA do topo da página */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 16px;                   /* Apenas padding lateral */
+  border-bottom: 1px solid #ccd8ee;  /* Linha igual ao topo */
+  background: #e7eefd;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  max-height: calc(100vh - 84px);
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0 14px;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 100%;
+}
+.sidebar li {
+  font-size: 0.92rem;
+  padding: 2px 5px 2px 3px;
+  border-radius: 8px;
+  margin-bottom: 0px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.16s;
+  gap: 8px;
+}
+.sidebar li.active,
+.sidebar li:hover {
+  background: #cdd6ea;
+}
+.conv-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.sidebar-more-btn {
+  margin-left: 6px;
+  font-size: 1.25em;
+  color: #888;
+  cursor: pointer;
+  opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+}
+.sidebar-popup-menu {
+  position: absolute;
+  right: 10px;
+  top: 35px;
+  background: #fff;
+  box-shadow: 0 2px 12px #aaa6;
+  border-radius: 10px;
+  z-index: 9;
+  min-width: 108px;
+  padding: 6px 0;
+  font-size: 1em;
+}
+.sidebar-popup-item {
+  padding: 7px 16px;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #234;
+  transition: background 0.14s;
+}
+.sidebar-popup-item:hover {
+  background: #e1eaff;
+}
+.rename-input {
+  width: 95%;
+  font-size: 1rem;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid #b3bde5;
+}
+.sidebar-new-btn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 1.01rem;
+  cursor: pointer;
+}
+
+/* RESPONSIVO */
+@media (max-width: 760px) {
+  .sidebar {
+    position: fixed;
+    z-index: 999;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    transform: translateX(-110%);
+    min-width: 240px;
+    box-shadow: 3px 0 24px #acbcdf2f;
+  }
+  .sidebar.open {
+    transform: translateX(0%);
+  }
+  .sidebar-header {
+    padding-top: 0;
+    height: 84px;
+  }
+}
+
+.sidebar-date-label {
+  margin: 15px 0 8px 15px;
+  font-size: 0.92em;
+  font-weight: 500;
+  color: #426;
+  opacity: 0.6;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
