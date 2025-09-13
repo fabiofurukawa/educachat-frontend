@@ -68,7 +68,7 @@ const Chat = ({ messages, setMessages, estiloBalon }) => {
     setFullTypingMsg(null);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/chat", {
+      const response = await axios.post("https://educachat-backend-fabio-2890cbc27e00.herokuapp.com/", {
         messages: nextMessages,
       });
 
