@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useContext } from "react";
 import MessageBubble from "./MessageBubble";
 import ChartBubble from "./ChartBubble";
 import FunctionPlotBubble from "./FunctionPlotBubble";
 import axios from "axios";
 import TextareaAutosize from "react-textarea-autosize";
 import "../styles/chat.css";
+import { UserContext } from "../context/UserContext";
 
 function tryParseChart(msg) {
   if (msg.role === "assistant" && typeof msg.content === "string") {
@@ -17,8 +18,9 @@ function tryParseChart(msg) {
   return {};
 }
 
-// Adicione estiloBalon como prop!
-const Chat = ({ messages, setMessages, estiloBalon }) => {
+const Chat = ({ estiloBalon }) => {
+  const { currentUser } = useContext(UserContext);
+  const [messages, setMessages] = useState([]); // 👈 ahora se maneja dentro
   const safeMessages = useMemo(
     () => (Array.isArray(messages) ? messages : []),
     [messages]
@@ -44,7 +46,6 @@ const Chat = ({ messages, setMessages, estiloBalon }) => {
     }
   }, [safeMessages, typingMsg]);
 
-  // Função para parar efeito máquina de escrever
   const stopTyping = () => {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     setTypingMsg(null);
@@ -59,7 +60,6 @@ const Chat = ({ messages, setMessages, estiloBalon }) => {
     if (!input.trim()) return;
     const userMessage = { role: "user", content: input };
 
-    // Não há mais if especial para primeira mensagem! Sempre processa igual.
     const nextMessages = [...safeMessages, userMessage];
     setMessages(nextMessages);
     setInput("");
@@ -68,9 +68,13 @@ const Chat = ({ messages, setMessages, estiloBalon }) => {
     setFullTypingMsg(null);
 
     try {
-      await axios.post("https://educachat-backend-fabio-2890cbc27e00.herokuapp.com/api/chat", {
-        messages: nextMessages,
-      });
+      const response = await axios.post(
+        "https://educachat-backend-fabio-2890cbc27e00.herokuapp.com/api/chat",
+        {
+          userId: currentUser?.uid || null,
+          messages: nextMessages,
+        }
+      );
 
       const aiMsg = response.data.message;
       if (
@@ -110,11 +114,10 @@ const Chat = ({ messages, setMessages, estiloBalon }) => {
     }
   };
 
-  // Define classe extra para tamanho dos balões
   const getBubbleClass = () => {
     if (estiloBalon === "ultracompacto") return "ultracompacto";
     if (estiloBalon === "intermediario") return "intermediario";
-    return ""; // padrão normal
+    return "";
   };
 
   return (
@@ -146,10 +149,18 @@ const Chat = ({ messages, setMessages, estiloBalon }) => {
           );
         })}
         {typingMsg !== null && (
-          <MessageBubble message={{ role: "assistant", content: typingMsg }} loading className={getBubbleClass()} />
+          <MessageBubble
+            message={{ role: "assistant", content: typingMsg }}
+            loading
+            className={getBubbleClass()}
+          />
         )}
         {loading && typingMsg === null && (
-          <MessageBubble message={{ role: "assistant", content: "..." }} loading className={getBubbleClass()} />
+          <MessageBubble
+            message={{ role: "assistant", content: "..." }}
+            loading
+            className={getBubbleClass()}
+          />
         )}
       </div>
       <form className="input-bar" onSubmit={handleSend}>
@@ -176,11 +187,7 @@ const Chat = ({ messages, setMessages, estiloBalon }) => {
           Enviar
         </button>
         {typingMsg !== null && (
-          <button
-            type="button"
-            onClick={stopTyping}
-            className="stop-btn"
-          >
+          <button type="button" onClick={stopTyping} className="stop-btn">
             Stop
           </button>
         )}
