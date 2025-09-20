@@ -1,4 +1,11 @@
-import React, { useState, useRef, useEffect, useMemo, useContext } from "react";
+// src/components/Chat.js
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useContext,
+} from "react";
 import MessageBubble from "./MessageBubble";
 import ChartBubble from "./ChartBubble";
 import FunctionPlotBubble from "./FunctionPlotBubble";
@@ -6,21 +13,24 @@ import axios from "axios";
 import TextareaAutosize from "react-textarea-autosize";
 import "../styles/chat.css";
 import { UserContext } from "../context/UserContext";
+import Login from "./Login";
+import Register from "./Register";
 
 function tryParseChart(msg) {
   if (msg.role === "assistant" && typeof msg.content === "string") {
     try {
       const parsed = JSON.parse(msg.content);
       if (parsed.type === "chart" && parsed.data) return { chart: parsed };
-      if (parsed.type === "function-plot" && parsed.fn) return { functionPlot: parsed };
+      if (parsed.type === "function-plot" && parsed.fn)
+        return { functionPlot: parsed };
     } catch {}
   }
   return {};
 }
 
 const Chat = ({ estiloBalon }) => {
-  const { currentUser } = useContext(UserContext);
-  const [messages, setMessages] = useState([]); // 👈 ahora se maneja dentro
+  const { currentUser, setCurrentUser } = useContext(UserContext);
+  const [messages, setMessages] = useState([]);
   const safeMessages = useMemo(
     () => (Array.isArray(messages) ? messages : []),
     [messages]
@@ -36,6 +46,10 @@ const Chat = ({ estiloBalon }) => {
   const inputRef = useRef(null);
   const chatBoxRef = useRef(null);
 
+  // contador de uso
+  const [usageCount, setUsageCount] = useState(0);
+  const LIMIT = 5; // 👈 número de mensajes gratis antes de pedir login
+
   useEffect(() => {
     if (!loading && inputRef.current) inputRef.current.focus();
   }, [loading]);
@@ -50,7 +64,10 @@ const Chat = ({ estiloBalon }) => {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     setTypingMsg(null);
     if (fullTypingMsg) {
-      setMessages([...safeMessages, { role: "assistant", content: fullTypingMsg }]);
+      setMessages([
+        ...safeMessages,
+        { role: "assistant", content: fullTypingMsg },
+      ]);
       setFullTypingMsg(null);
     }
   };
@@ -58,6 +75,12 @@ const Chat = ({ estiloBalon }) => {
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    // si pasó del límite y no está logado, bloquea
+    if (usageCount >= LIMIT && !currentUser) {
+      return;
+    }
+
     const userMessage = { role: "user", content: input };
 
     const nextMessages = [...safeMessages, userMessage];
@@ -75,6 +98,8 @@ const Chat = ({ estiloBalon }) => {
           messages: nextMessages,
         }
       );
+
+      setUsageCount((prev) => prev + 1); // 👈 suma al contador
 
       const aiMsg = response.data.message;
       if (
@@ -122,11 +147,14 @@ const Chat = ({ estiloBalon }) => {
 
   return (
     <div className="chat-container">
+      {/* Caja de chat */}
       <div className="chat-box" ref={chatBoxRef}>
         {safeMessages.map((msg, idx) => {
           const { chart, functionPlot } = tryParseChart(msg);
           if (chart)
-            return <ChartBubble key={idx} data={chart.data} title={chart.title} />;
+            return (
+              <ChartBubble key={idx} data={chart.data} title={chart.title} />
+            );
           if (functionPlot)
             return (
               <FunctionPlotBubble
@@ -163,6 +191,8 @@ const Chat = ({ estiloBalon }) => {
           />
         )}
       </div>
+
+      {/* Barra de entrada */}
       <form className="input-bar" onSubmit={handleSend}>
         <TextareaAutosize
           className="input-textarea"
@@ -192,6 +222,17 @@ const Chat = ({ estiloBalon }) => {
           </button>
         )}
       </form>
+
+      {/* Popup de login si alcanzó el límite */}
+      {usageCount >= LIMIT && !currentUser && (
+        <div className="popup">
+          <div className="popup-content">
+            <h3>Para continuar, haz login o regístrate</h3>
+            <Login onLoginSuccess={setCurrentUser} />
+            <Register onRegisterSuccess={setCurrentUser} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
