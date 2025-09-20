@@ -50,7 +50,7 @@ const Chat = ({ estiloBalon }) => {
 
   // contador de uso
   const [usageCount, setUsageCount] = useState(0);
-  const LIMIT = 5; // 👈 número de mensajes gratis antes de pedir login
+  const LIMIT = 2; // 👈 número de mensajes gratis antes de pedir login
 
   useEffect(() => {
     if (!loading && inputRef.current) inputRef.current.focus();
