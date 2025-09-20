@@ -13,8 +13,6 @@ import axios from "axios";
 import TextareaAutosize from "react-textarea-autosize";
 import "../styles/chat.css";
 import { UserContext } from "../context/UserContext";
-import Login from "./Login";
-import Register from "./Register";
 
 function tryParseChart(msg) {
   if (msg.role === "assistant" && typeof msg.content === "string") {
@@ -29,7 +27,10 @@ function tryParseChart(msg) {
 }
 
 const Chat = ({ estiloBalon }) => {
-  const { currentUser, setCurrentUser } = useContext(UserContext);
+  // acceso seguro al contexto
+  const userCtx = useContext(UserContext) || {};
+  const { currentUser } = userCtx;
+
   const [messages, setMessages] = useState([]);
   const safeMessages = useMemo(
     () => (Array.isArray(messages) ? messages : []),
@@ -45,10 +46,6 @@ const Chat = ({ estiloBalon }) => {
   const lastUserMessageRef = useRef(null);
   const inputRef = useRef(null);
   const chatBoxRef = useRef(null);
-
-  // contador de uso
-  const [usageCount, setUsageCount] = useState(0);
-  const LIMIT = 5; // 👈 número de mensajes gratis antes de pedir login
 
   useEffect(() => {
     if (!loading && inputRef.current) inputRef.current.focus();
@@ -76,11 +73,6 @@ const Chat = ({ estiloBalon }) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // si pasó del límite y no está logado, bloquea
-    if (usageCount >= LIMIT && !currentUser) {
-      return;
-    }
-
     const userMessage = { role: "user", content: input };
 
     const nextMessages = [...safeMessages, userMessage];
@@ -91,6 +83,8 @@ const Chat = ({ estiloBalon }) => {
     setFullTypingMsg(null);
 
     try {
+      console.log("➡️ Enviando mensaje:", input);
+
       const response = await axios.post(
         "https://educachat-backend-fabio-2890cbc27e00.herokuapp.com/api/chat",
         {
@@ -99,9 +93,8 @@ const Chat = ({ estiloBalon }) => {
         }
       );
 
-      setUsageCount((prev) => prev + 1); // 👈 suma al contador
-
       const aiMsg = response.data.message;
+
       if (
         aiMsg.role === "assistant" &&
         typeof aiMsg.content === "string" &&
@@ -126,6 +119,7 @@ const Chat = ({ estiloBalon }) => {
         setMessages([...safeMessages, userMessage, aiMsg]);
       }
     } catch (err) {
+      console.error("❌ Error al llamar al backend:", err);
       setMessages([
         ...safeMessages,
         userMessage,
@@ -222,17 +216,6 @@ const Chat = ({ estiloBalon }) => {
           </button>
         )}
       </form>
-
-      {/* Popup de login si alcanzó el límite */}
-      {usageCount >= LIMIT && !currentUser && (
-        <div className="popup">
-          <div className="popup-content">
-            <h3>Para continuar, haz login o regístrate</h3>
-            <Login onLoginSuccess={setCurrentUser} />
-            <Register onRegisterSuccess={setCurrentUser} />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
