@@ -13,6 +13,8 @@ import axios from "axios";
 import TextareaAutosize from "react-textarea-autosize";
 import "../styles/chat.css";
 import { UserContext } from "../context/UserContext";
+import Login from "./Login";
+import Register from "./Register";
 
 function tryParseChart(msg) {
   if (msg.role === "assistant" && typeof msg.content === "string") {
@@ -27,9 +29,8 @@ function tryParseChart(msg) {
 }
 
 const Chat = ({ estiloBalon }) => {
-  // acceso seguro al contexto
   const userCtx = useContext(UserContext) || {};
-  const { currentUser } = userCtx;
+  const { currentUser, setCurrentUser } = userCtx;
 
   const [messages, setMessages] = useState([]);
   const safeMessages = useMemo(
@@ -46,6 +47,10 @@ const Chat = ({ estiloBalon }) => {
   const lastUserMessageRef = useRef(null);
   const inputRef = useRef(null);
   const chatBoxRef = useRef(null);
+
+  // contador de uso
+  const [usageCount, setUsageCount] = useState(0);
+  const LIMIT = 5; // 👈 número de mensajes gratis antes de pedir login
 
   useEffect(() => {
     if (!loading && inputRef.current) inputRef.current.focus();
@@ -73,6 +78,11 @@ const Chat = ({ estiloBalon }) => {
     e.preventDefault();
     if (!input.trim()) return;
 
+    // si pasó del límite y no está logado, bloquea
+    if (usageCount >= LIMIT && !currentUser) {
+      return;
+    }
+
     const userMessage = { role: "user", content: input };
 
     const nextMessages = [...safeMessages, userMessage];
@@ -83,8 +93,6 @@ const Chat = ({ estiloBalon }) => {
     setFullTypingMsg(null);
 
     try {
-      console.log("➡️ Enviando mensaje:", input);
-
       const response = await axios.post(
         "https://educachat-backend-fabio-2890cbc27e00.herokuapp.com/api/chat",
         {
@@ -92,6 +100,8 @@ const Chat = ({ estiloBalon }) => {
           messages: nextMessages,
         }
       );
+
+      setUsageCount((prev) => prev + 1);
 
       const aiMsg = response.data.message;
 
@@ -166,7 +176,7 @@ const Chat = ({ estiloBalon }) => {
               key={idx}
               message={msg}
               ref={isLastUserMsg ? lastUserMessageRef : null}
-              className={getBubbleClass()}
+              className={`message-bubble ${msg.role} ${getBubbleClass()}`}
             />
           );
         })}
@@ -174,14 +184,14 @@ const Chat = ({ estiloBalon }) => {
           <MessageBubble
             message={{ role: "assistant", content: typingMsg }}
             loading
-            className={getBubbleClass()}
+            className={`message-bubble assistant ${getBubbleClass()}`}
           />
         )}
         {loading && typingMsg === null && (
           <MessageBubble
-            message={{ role: "assistant", content: "..." }}
+            message={{ role: "assistant", content: "..."}}
             loading
-            className={getBubbleClass()}
+            className={`message-bubble assistant ${getBubbleClass()}`}
           />
         )}
       </div>
@@ -216,6 +226,18 @@ const Chat = ({ estiloBalon }) => {
           </button>
         )}
       </form>
+
+      {/* Popup de login si alcanzó el límite */}
+      {usageCount >= LIMIT && !currentUser && (
+        <div className="popup">
+          <div className="popup-content">
+            <h3>🔐 Para continuar, haz login o regístrate</h3>
+            <Login onLoginSuccess={setCurrentUser} />
+            <hr style={{ margin: "15px 0" }} />
+            <Register onRegisterSuccess={setCurrentUser} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 // src/components/Login.jsx
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/firebaseConfig";
+import { auth } from "../firebase";   // 👈 corregido
 
 const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
@@ -13,7 +13,7 @@ const Login = ({ onLoginSuccess }) => {
     setErro("");
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, senha);
-      onLoginSuccess(userCredential.user);
+      onLoginSuccess(userCredential.user); // devuelve el usuario logado
     } catch (err) {
       setErro("Email o contraseña inválidos");
     }

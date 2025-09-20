@@ -1,7 +1,7 @@
 // src/components/Register.jsx
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/firebaseConfig";
+import { auth } from "../firebase";   // 👈 corregido
 
 const Register = ({ onRegisterSuccess }) => {
   const [email, setEmail] = useState("");
@@ -13,11 +13,15 @@ const Register = ({ onRegisterSuccess }) => {
     setErro("");
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-      onRegisterSuccess(userCredential.user);
+      onRegisterSuccess(userCredential.user); // devuelve el usuario creado
     } catch (err) {
-      if (err.code === "auth/email-already-in-use") setErro("Email já cadastrado.");
-      else if (err.code === "auth/weak-password") setErro("A senha precisa ter pelo menos 6 caracteres.");
-      else setErro("Erro ao cadastrar. Tente novamente.");
+      if (err.code === "auth/email-already-in-use") {
+        setErro("Email já cadastrado.");
+      } else if (err.code === "auth/weak-password") {
+        setErro("A senha precisa ter pelo menos 6 caracteres.");
+      } else {
+        setErro("Erro ao cadastrar. Tente novamente.");
+      }
     }
   };
 
